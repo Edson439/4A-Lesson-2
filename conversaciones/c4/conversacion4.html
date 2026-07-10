@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conversation C1</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #ffffff;
+      padding: 28px;
+      color: #111111;
+    }
+
+    .c1-wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .c1-main-image {
+      width: 74%;
+      max-width: 760px;
+      height: 80%;
+	  max-height: 300px;
+      margin: 0 auto 34px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #d9d9de;
+    }
+
+    .c1-main-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .c1-dialogues {
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+      align-items: center;
+    }
+
+    .c1-row {
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
+    }
+
+    .c1-row.left {
+      justify-content: flex-start;
+    }
+
+    .c1-row.right {
+      justify-content: flex-end;
+    }
+
+	.c1-avatar {
+	  width: 96px;
+	  height: 96px;
+	  border-radius: 50%;
+	  overflow: hidden;
+	  border: 3px solid #ffffff;
+	  flex: 0 0 auto;
+	  align-self: flex-start;
+	  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+	  margin-top: 28px;
+	  background: #ecebff;
+	}
+
+    .c1-avatar.active {
+      border-color: #007bff;
+    }
+
+    .c1-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .c1-bubble-wrap {
+      max-width: 690px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .c1-row.left .c1-bubble-wrap {
+      align-items: flex-start;
+    }
+
+    .c1-row.right .c1-bubble-wrap {
+      align-items: flex-end;
+    }
+
+    .c1-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #007bff;
+      line-height: 1;
+      padding: 0 18px;
+    }
+
+.c1-bubble {
+  min-height: 88px;
+  width: 100%;
+  max-width: 520px;
+  border: 2px solid #dbe3f3;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 20px 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+    .c1-audio-btn {
+      border: none;
+      background: transparent;
+      color: #007bff;
+      font-size: 34px;
+      cursor: pointer;
+      flex: 0 0 auto;
+      line-height: 1;
+	  margin-top: 6px;
+    }
+
+    .c1-audio-btn:hover {
+      opacity: 0.85;
+    }
+
+.c1-text {
+  font-size: 28px;
+  line-height: 1.35;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0px;
+  align-items: center;
+}
+
+.c1-word {
+  display: inline-grid;
+  place-items: center;
+  padding: 2px 4px;
+  border-radius: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  position: relative;
+}
+
+.c1-word::before {
+  content: attr(data-word);
+  font-weight: 700;
+  visibility: hidden;
+  white-space: nowrap;
+  height: 0;
+  overflow: hidden;
+}
+
+.c1-word:hover {
+  background: #fdeaea;
+  color: #ef4444;
+  text-decoration: underline;
+  text-decoration-color: #ef4444;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 2px;
+  font-weight: 700;
+}
+
+.c1-word.active {
+  background: #dfe8ff;
+  color: #007bff;
+  font-weight: 700;
+}
+
+	  
+	  
+.c1-word {
+  cursor: pointer;
+}
+
+.c1-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.c1-popup-overlay.active {
+  display: flex;
+}
+
+.c1-popup-box {
+  width: 90vw;
+  max-width: 1100px;
+  height: 85vh;
+  background: #ffffff;
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.c1-popup-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: #e53935;
+  color: #ffffff;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 2;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.c1-popup-close:hover {
+  background: #c62828;
+}
+
+#c1PopupFrame {
+  width: 95%;
+  height: 95%;
+  border: none;
+  border-radius: 12px;
+}
+	  
+	  .c1-avatar.active {
+		  border-color: #007bff;
+		  animation: c1PulseTalk 1s infinite ease-in-out;
+		}
+
+		@keyframes c1PulseTalk {
+		  0% {
+			transform: scale(1);
+			box-shadow: 0 0 0 0 rgba(47, 109, 246, 0.45);
+		  }
+		  50% {
+			transform: scale(1.02);
+			box-shadow: 0 0 0 10px rgba(47, 109, 246, 0.12);
+		  }
+		  100% {
+			transform: scale(1);
+			box-shadow: 0 0 0 0 rgba(47, 109, 246, 0);
+		  }
+		}
+	  
+.c1-word.no-action {
+  cursor: default;
+}
+
+.c1-word.no-action:hover {
+  background: none;
+  color: inherit;
+  text-decoration: none;
+  font-weight: normal;
+}
+	  
+    @media (max-width: 900px) {
+      .c1-main-image {
+        height: 400px;
+      }
+
+      .c1-avatar {
+        width: 76px;
+        height: 76px;
+      }
+
+      .c1-bubble {
+        min-height: 72px;
+        padding: 16px 18px;
+      }
+
+      .c1-text {
+        font-size: 26px;
+      }
+
+      .c1-audio-btn {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="c1-wrapper">
+    <div class="c1-main-image">
+      <img src="c1.png" alt="Conversation scene">
+    </div>
+
+    <div class="c1-dialogues">
+      <div class="c1-row left">
+        <div class="c1-avatar" id="avatar-linda">
+          <img src="m1.png" alt="Linda">
+        </div>
+
+        <div class="c1-bubble-wrap">
+          <div class="c1-name">Gabe</div>
+          <div class="c1-bubble">
+            <button class="c1-audio-btn" id="btn-audio-1" aria-label="Play Linda audio">
+              <i class="fa-solid fa-volume-high"></i>
+            </button>
+            <div class="c1-text" id="text-1">
+				<span class="c1-word" data-word="It" data-popup="../Colorchart/it.html">It</span>
+				<span class="c1-word" data-word="is" data-popup="../Colorchart/is.html">is</span>
+				<span class="c1-word" data-word="hot" data-popup="../Colorchart/hot.html">hot</span>
+				<span class="c1-word" data-word="today." data-popup="../Colorchart/today.html">today.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="c1-row right">
+        <div class="c1-bubble-wrap">
+          <div class="c1-name">Lia</div>
+          <div class="c1-bubble">
+            <div class="c1-text" id="text-2">
+				<span class="c1-word" data-word="Yes," data-popup="../Colorchart/yes.html">Yes,</span>
+				<span class="c1-word" data-word="it" data-popup="../Colorchart/it.html">it</span>
+				<span class="c1-word" data-word="is." data-popup="../Colorchart/is.html">is.</span>
+				<span class="c1-word" data-word="It" data-popup="../Colorchart/it.html">It</span>
+				<span class="c1-word" data-word="is" data-popup="../Colorchart/is.html">is</span>
+				<span class="c1-word" data-word="very" data-popup="../Colorchart/very.html">very</span>
+				<span class="c1-word" data-word="warm." data-popup="../Colorchart/warm.html">warm.</span>
+            </div>
+            <button class="c1-audio-btn" id="btn-audio-2" aria-label="Play Sam audio">
+              <i class="fa-solid fa-volume-high"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="c1-avatar" id="avatar-sam">
+          <img src="h2.png" alt="Sam">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="audio-1" src="c1.mp3"></audio>
+  <audio id="audio-2" src="c2.mp3"></audio>
+
+	<div class="c1-popup-overlay" id="c1PopupOverlay">
+	  <div class="c1-popup-box">
+		<button class="c1-popup-close" id="c1PopupClose">&times;</button>
+		<iframe id="c1PopupFrame" src="" frameborder="0"></iframe>
+	  </div>
+	</div>
+	
+  <script>
+    const dialogues = {
+      1: {
+        audio: document.getElementById('audio-1'),
+        button: document.getElementById('btn-audio-1'),
+        avatar: document.getElementById('avatar-linda'),
+        words: Array.from(document.querySelectorAll('#text-1 .c1-word')),
+        // Tiempos de ejemplo. Cámbialos según tu audio real.
+        timings: [
+          { start: 0.24, end: 0.35, index: 0 },
+          { start: 0.35, end: 0.60, index: 1 },
+          { start: 0.60, end: 0.97, index: 2 },
+          { start: 0.97, end: 1.46, index: 3 }
+        ],
+        rafId: null
+      },
+      2: {
+        audio: document.getElementById('audio-2'),
+        button: document.getElementById('btn-audio-2'),
+        avatar: document.getElementById('avatar-sam'),
+        words: Array.from(document.querySelectorAll('#text-2 .c1-word')),
+        // Tiempos de ejemplo. Cámbialos según tu audio real.
+        timings: [
+          { start: 0.11, end: 0.59, index: 0 },
+          { start: 0.59, end: 0.68, index: 1 },
+          { start: 0.68, end: 0.93, index: 2 },
+          { start: 0.93, end: 1.19, index: 3 },
+          { start: 1.19, end: 1.32, index: 4 },
+          { start: 1.32, end: 2.11, index: 5 },
+          { start: 2.11, end: 2.50, index: 6 }
+        ],
+        rafId: null
+      }
+    };
+
+const c1PopupOverlay = document.getElementById('c1PopupOverlay');
+const c1PopupFrame = document.getElementById('c1PopupFrame');
+const c1PopupClose = document.getElementById('c1PopupClose');
+
+function openC1Popup(file) {
+  c1PopupFrame.src = file;
+  c1PopupOverlay.classList.add('active');
+}
+
+function closeC1Popup() {
+  c1PopupOverlay.classList.remove('active');
+  c1PopupFrame.src = '';
+}	  
+	  
+	  
+	  
+	  
+    function clearHighlights(dialogue) {
+      dialogue.words.forEach(word => word.classList.remove('active'));
+      dialogue.avatar.classList.remove('active');
+    }
+
+    function stopDialogue(dialogue) {
+      dialogue.audio.pause();
+      dialogue.audio.currentTime = 0;
+      if (dialogue.rafId) {
+        cancelAnimationFrame(dialogue.rafId);
+        dialogue.rafId = null;
+      }
+      clearHighlights(dialogue);
+    }
+
+    function stopAllExcept(currentId) {
+      Object.entries(dialogues).forEach(([id, dialogue]) => {
+        if (Number(id) !== currentId) {
+          stopDialogue(dialogue);
+        }
+      });
+    }
+
+    function updateHighlights(dialogue) {
+      const currentTime = dialogue.audio.currentTime;
+      dialogue.words.forEach(word => word.classList.remove('active'));
+      dialogue.avatar.classList.add('active');
+
+      const activeTiming = dialogue.timings.find(item => currentTime >= item.start && currentTime < item.end);
+      if (activeTiming) {
+        dialogue.words[activeTiming.index].classList.add('active');
+      }
+
+      if (!dialogue.audio.paused && !dialogue.audio.ended) {
+        dialogue.rafId = requestAnimationFrame(() => updateHighlights(dialogue));
+      }
+    }
+
+    function playDialogue(id) {
+      const dialogue = dialogues[id];
+      stopAllExcept(id);
+      clearHighlights(dialogue);
+      dialogue.audio.currentTime = 0;
+      dialogue.audio.play();
+      updateHighlights(dialogue);
+    }
+
+    Object.entries(dialogues).forEach(([id, dialogue]) => {
+      dialogue.button.addEventListener('click', () => playDialogue(Number(id)));
+
+      dialogue.audio.addEventListener('ended', () => {
+        clearHighlights(dialogue);
+        if (dialogue.rafId) {
+          cancelAnimationFrame(dialogue.rafId);
+          dialogue.rafId = null;
+        }
+      });
+
+      dialogue.audio.addEventListener('pause', () => {
+        if (dialogue.audio.ended) return;
+        if (dialogue.rafId) {
+          cancelAnimationFrame(dialogue.rafId);
+          dialogue.rafId = null;
+        }
+      });
+    });
+	  
+	  
+document.querySelectorAll('.c1-word[data-popup]').forEach(word => {
+  word.addEventListener('click', () => {
+	if (word.classList.contains('no-action')) return;
+
+	const file = word.getAttribute('data-popup');
+	if (file) openC1Popup(file);
+  });
+});
+
+	c1PopupClose.addEventListener('click', closeC1Popup);
+
+	c1PopupOverlay.addEventListener('click', (e) => {
+	  if (e.target === c1PopupOverlay) {
+		closeC1Popup();
+	  }
+	});  
+	  
+  </script>
+</body>
+</html>
