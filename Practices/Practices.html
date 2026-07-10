@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Secret Image Builder</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --blue: #007bff;
+      --light-blue: #e6f0ff;
+      --border-blue: #9ebcff;
+      --good: #b9efc8;
+      --bad: #f5b7bf;
+      --text-dark: #21408f;
+      --shadow: 0 10px 25px rgba(75, 108, 255, 0.15);
+    }
+
+	body {
+	  font-family: Arial, sans-serif;
+	  background: transparent;
+	  min-height: 100vh;
+	  padding: 0px;
+	  color: #111;
+	  overflow: hidden;
+	  zoom: 0.80;
+	}
+
+.app {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+    .top-icons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      min-height: 92px;
+	  margin-top: 20px;
+    }
+
+	.top-icon {
+	  width: 74px;
+	  height: 74px;
+	  border-radius: 18px;
+	  border: 2px solid var(--border-blue);
+	  background: #f7fbff;
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+	  transition: transform 0.25s ease, opacity 0.25s ease, box-shadow 0.25s ease;
+	  pointer-events: none;
+	  opacity: 0.75;
+	}
+
+	.top-icon img {
+	  max-width: 68%;
+	  max-height: 68%;
+	  object-fit: contain;
+	  display: block;
+	}
+
+	.top-icon.current {
+	  width: 88px;
+	  height: 88px;
+	  opacity: 1;
+	  transform: translateY(-4px) scale(1.06);
+	  background: #f2fff4;
+	  border-color: #57d97d;
+	  box-shadow:
+		0 0 0 4px rgba(87, 217, 125, 0.25),
+		0 10px 20px rgba(87, 217, 125, 0.25);
+	  animation: activePiecePulse 1.6s infinite ease-in-out;
+	}
+
+    .top-icon.hidden-done {
+      visibility: hidden;
+      opacity: 0;
+    }
+
+.stage-area {
+  width: 100%;
+  min-height: 180px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.secret-stack {
+  position: relative;
+  width: min(100%, 340px);
+  aspect-ratio: 631 / 1080;
+}
+
+    .secret-stack img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+#startBtn{
+  width: 320px;
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.exercise-zone {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.word-bank {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-height: 95px;
+  align-items: center;
+}
+
+.lego-word {
+  position: relative;
+  width: 122px;
+  height: 60px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0 0 0;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+    .lego-word:hover {
+      transform: translateY(-2px);
+    }
+
+    .lego-word.dragging {
+      opacity: 0.45;
+    }
+
+    .lego-word.used {
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .slots {
+      display: flex;
+      justify-content: center;
+      gap: 0px;
+      flex-wrap: nowrap;
+      width: 100%;
+      max-width: 980px;
+      min-height: 75px;
+    }
+
+.slot {
+  position: relative;
+  width: 122px;
+  height: 60px;
+  background-image: url("images/hueco.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
+
+    .slot.drop-hover {
+      filter: brightness(1.06);
+    }
+
+.slot .placed-word {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px 0 0 0;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+  cursor: pointer;
+  user-select: none;
+}
+
+    .slot.correct .placed-word {
+      background-image: url("images/cubov.png") !important;
+    }
+
+    .slot.wrong .placed-word {
+      background-image: url("images/cubor.png") !important;
+    }
+
+    .slot.locked .placed-word {
+      cursor: default;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 70px;
+    }
+
+    #checkBtn {
+      min-width: 130px;
+      height: 50px;
+      border-radius: 14px;
+      border: 2px solid #9ebcff;
+      background: #ffffff;
+      color: var(--blue);
+      font-size: 23px;
+      font-weight: 300;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+    }
+
+    #checkBtn:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+
+    #checkBtn.good {
+      background: #ffffff;
+      color: var(--blue);
+    }
+
+    #checkBtn.bad {
+      background: #ffffff;
+      color: var(--blue);
+    }
+
+    #checkBtn:disabled {
+      cursor: default;
+      opacity: 0.95;
+    }
+
+    .end-message {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--blue);
+      text-align: center;
+      min-height: 36px;
+    }
+
+/* ===== PANTALLA DE INICIO ===== */
+#startScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+/* Imagen de fondo */
+.start-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Botón Start */
+#startBtn {
+  position: absolute;
+  bottom: 6%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: clamp(240px, 22vw, 340px);
+  cursor: pointer;
+  z-index: 10000;
+  transition: transform 0.2s ease;
+  animation: pulseStart 1.6s infinite ease-in-out;
+}
+
+/* Hover */
+#startBtn:hover {
+  transform: translateX(-50%) scale(1.08);
+}
+
+/* Animación */
+@keyframes pulseStart {
+  0% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.08);
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+}
+	  
+	  /* ===== PANTALLA FINAL ===== */
+#endScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  z-index: 10001;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+
+#endScreen.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.end-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+	  
+.reveal-piece {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+  z-index: 20;
+  transform: translateY(-220px);
+  opacity: 0;
+}
+
+.reveal-piece.animate-in {
+  animation: pieceDropSimple 0.7s ease-out forwards;
+}
+
+@keyframes pieceDropSimple {
+  0% {
+    transform: translateY(-220px);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+	  @keyframes activePiecePulse {
+		  0% {
+			transform: translateY(-4px) scale(1.06);
+		  }
+		  50% {
+			transform: translateY(-6px) scale(1.1);
+		  }
+		  100% {
+			transform: translateY(-4px) scale(1.06);
+		  }
+		}
+/* ===== BOTÓN FLOTANTE AYUDA ===== */
+.practice-help-float {
+  position: fixed;
+  top: 27px;
+  right: 5px;
+  width: 44px;
+  height: 44px;
+  background: #e6f0ff;
+  border-radius: 50%;
+  box-shadow: 0 8px 17px rgba(0,0,0,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 9998;
+  transition: transform 0.15s ease;
+  overflow: visible;
+}
+
+.practice-help-float:hover {
+  transform: translateY(-2px);
+}
+
+.practice-help-float::before {
+  display: none;
+}
+
+.practice-help-float::after {
+  display: none;
+}
+
+.practice-help-float:hover::after {
+  opacity: 1;
+}
+
+.practice-help-question {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #e6f0ff;
+  color: #007bff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ===== POPUP ===== */
+.practice-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+}
+
+.practice-popup-overlay.active {
+  display: flex;
+}
+
+.practice-popup-box {
+  width: min(92vw, 760px);
+  background: #e6f0ff;
+  border-radius: 24px;
+  padding: 34px 32px 28px;
+  position: relative;
+  text-align: center;
+  box-shadow: 0 18px 35px rgba(0,0,0,0.18);
+}
+
+
+.practice-popup-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #007bff;
+  margin-bottom: 18px;
+}
+
+.practice-popup-text {
+  font-size: 24px;
+  line-height: 1.45;
+  color: black;
+  margin-bottom: 22px;
+}
+
+.practice-popup-image {
+  width: min(100%, 280px);
+  max-height: 360px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 22px;
+}
+
+.practice-popup-text-bottom {
+  font-size: 24px;
+  line-height: 1.4;
+  color: black;
+  margin-bottom: 40px;
+}
+  </style>
+</head>
+<body>
+	<!-- PANTALLA DE INICIO -->
+	<div id="startScreen">
+	  <img src="images/fondoPrac1.png" alt="Fondo inicio" class="start-bg">
+
+	  <img 
+		src="images/Start.png" 
+		alt="Start" 
+		id="startBtn"
+		onclick="startGame()"
+	  >
+	</div>
+	<div id="endScreen">
+	  <video 
+		id="endVideo"
+		class="end-video"
+		preload="auto"
+		playsinline
+	  >
+		<source src="videos/end.mp4" type="video/mp4">
+	  </video>
+	</div>
+  <div class="app">
+    <div class="top-icons" id="topIcons"></div>
+
+    <div class="stage-area">
+      <div class="secret-stack" id="secretStack"></div>
+    </div>
+
+    <div class="exercise-zone" id="exerciseZone">
+      <div class="word-bank" id="wordBank"></div>
+      <div class="slots" id="slots"></div>
+      <div class="actions">
+        <button id="checkBtn">Check</button>
+      </div>
+      <div class="end-message" id="endMessage"></div>
+    </div>
+  </div>
+	<audio id="startSound" src="audios/star.mp3" preload="auto"></audio>
+	<audio id="goodSound" src="audios/revelar.wav" preload="auto"></audio>
+	<audio id="airSound" src="audios/aire.mp3" preload="auto"></audio>
+	<audio id="connectSound" src="audios/armar.mp3" preload="auto"></audio>
+	<audio id="badSound" src="audios/mal.mp3" preload="auto"></audio>
+	<audio id="winnerSound" src="audios/ganador.mp3" preload="auto"></audio>
+	<audio id="congraSound" src="audios/felicidades.mp3" preload="auto"></audio>
+	<audio id="applauseSound" src="audios/aplausos.mp3" preload="auto"></audio>
+    <audio id="removeSound" src="audios/boton.wav" preload="auto"></audio>
+	<audio id="closeSound" src="audios/cerrar.wav" preload="auto"></audio>
+  <script>
+	const exercises = [
+	  {
+		icon: "images/item1.png",
+		words: ["Mexico.", "from", "are", "is", "She"],
+		answer: ["She", "is", "from", "Mexico."],
+		reveal: "images/lego1.png",
+	  },
+	  {
+		icon: "images/item2.png",
+		words: ["are", "not", "am", "happy.", "They"],
+		answer: ["They", "are", "not", "happy."],
+		reveal: "images/lego2.png",
+	  },
+	  {
+		icon: "images/item3.png",
+		words: ["student.", "I", "is", "a", "am"],
+		answer: ["I", "am", "a", "student."],
+		reveal: "images/lego3.png",
+	  },
+	  {
+		icon: "images/item4.png",
+		words: ["teachers.", "not", "are", "am", "You"],
+		answer: ["You", "are", "not", "teachers."],
+		reveal: "images/lego4.png",
+	  },
+	  {
+		icon: "images/item5.png",
+		words: ["is", "He", "are", "school.", "at"],
+		answer: ["He", "is", "at", "school."],
+		reveal: "images/lego5.png",
+	  },
+	  {
+		icon: "images/item6.png",
+		words: ["It", "cold.", "is", "very", "are"],
+		answer: ["It", "is", "very", "cold."],
+		reveal: "images/lego6.png",
+	  },
+	  {
+		icon: "images/item7.png",
+		words: ["Rita.", "am", "not", "I", "is"],
+		answer: ["I", "am", "not", "Rita."],
+		reveal: "images/lego7.png",
+	  },
+	  {
+		icon: "images/item8.png",
+		words: ["in", "We", "the street.", "am", "are"],
+		answer: ["We", "are", "in", "the street."],
+		reveal: "images/lego8.png",
+	  },
+	  {
+		icon: "images/item9.png",
+		words: ["She", "are", "a", "dentist.", "is"],
+		answer: ["She", "is", "a", "dentist."],
+		reveal: "images/lego9.png",
+	  },
+	  {
+		icon: "images/item10.png",
+		words: ["not", "is", "They", "angry.", "are"],
+		answer: ["They", "are", "not", "angry."],
+		reveal: "images/lego10.png",
+	  }
+	];
+
+    const legoImages = [
+      "images/cuboazul1.png",
+      "images/cuboazul2.png",
+      "images/cuboazul3.png",
+      "images/cuboazul4.png",
+      "images/cuboazul5.png",
+      "images/cuboazul6.png"
+    ];
+
+	const fixedRevealOrder = [
+	  "images/lego1.png",
+	  "images/lego2.png",
+	  "images/lego3.png",
+	  "images/lego4.png",
+	  "images/lego5.png",
+	  "images/lego6.png",
+	  "images/lego7.png",
+	  "images/lego8.png",
+	  "images/lego9.png",
+	  "images/lego10.png"
+	];
+
+    const topIconsEl = document.getElementById("topIcons");
+    const secretStackEl = document.getElementById("secretStack");
+    const wordBankEl = document.getElementById("wordBank");
+    const slotsEl = document.getElementById("slots");
+    const checkBtn = document.getElementById("checkBtn");
+    const endMessageEl = document.getElementById("endMessage");
+
+    let currentExerciseIndex = 0;
+    let draggedWordId = null;
+    let currentPlaced = [];
+    let currentWordPool = [];
+    let revealedImages = new Set();
+	  let buttonMode = "check";
+	  let readyToGoNext = false;
+
+	const glueSounds = [
+	  "audios/soltar.mp3",
+	  "audios/soltar.mp3",
+	  "audios/soltar.mp3"
+	];
+
+	function playSound(id) {
+	  const sound = document.getElementById(id);
+	  if (!sound) return;
+
+	  sound.currentTime = 0;
+	  sound.play().catch(() => {});
+	}
+	  
+	function playSoundWithVolume(id, volume = 1) {
+	  const sound = document.getElementById(id);
+	  if (!sound) return;
+
+	  sound.pause();
+	  sound.currentTime = 0;
+	  sound.volume = volume;
+
+	  sound.play().catch(() => {});
+	}
+	
+	  
+	function playRandomGlue() {
+	  const randomSound = glueSounds[Math.floor(Math.random() * glueSounds.length)];
+	  const audio = new Audio(randomSound);
+	  audio.play().catch(() => {});
+	}  
+	  
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function randomLego() {
+      return legoImages[Math.floor(Math.random() * legoImages.length)];
+    }
+
+    function renderTopIcons() {
+      topIconsEl.innerHTML = "";
+
+      exercises.forEach((ex, index) => {
+        const icon = document.createElement("div");
+        icon.className = "top-icon";
+
+        if (index === currentExerciseIndex) icon.classList.add("current");
+        if (index < currentExerciseIndex) icon.classList.add("hidden-done");
+
+        const img = document.createElement("img");
+        img.src = ex.icon;
+        img.alt = `piece ${index + 1}`;
+        img.draggable = false;
+
+        icon.appendChild(img);
+        topIconsEl.appendChild(icon);
+      });
+    }
+
+    function renderSecretStack() {
+      secretStackEl.innerHTML = "";
+
+      const base = document.createElement("img");
+      base.src = "images/fondoL.png";
+      base.alt = "base";
+      secretStackEl.appendChild(base);
+
+		fixedRevealOrder.forEach((src) => {
+		  if (revealedImages.has(src)) {
+			const img = document.createElement("img");
+			img.src = src;
+			img.alt = "revealed layer";
+
+			// lego2 SIEMPRE atrás
+			if (src.includes("lego2.png")) {
+			  img.style.zIndex = "1";
+			} else {
+			  img.style.zIndex = "10";
+			}
+
+			secretStackEl.appendChild(img);
+		  }
+		});
+    }
+	  
+function animateRevealPiece(src, onComplete) {
+  renderSecretStack();
+
+  const animatedPiece = document.createElement("img");
+  animatedPiece.src = src;
+  animatedPiece.alt = "animated revealed layer";
+  animatedPiece.className = "reveal-piece";
+	  if (src.includes("lego2.png")) {
+    animatedPiece.style.zIndex = "1";
+  } else {
+    animatedPiece.style.zIndex = "20";
+  }
+
+  secretStackEl.appendChild(animatedPiece);
+
+  // sonido de caída
+  playSoundWithVolume("airSound", 0.55);
+
+  requestAnimationFrame(() => {
+    animatedPiece.classList.add("animate-in");
+  });
+
+  // sonido al conectar
+  setTimeout(() => {
+    playSoundWithVolume("connectSound", 0.9);
+  }, 620);
+
+  animatedPiece.addEventListener("animationend", () => {
+    revealedImages.add(src);
+    renderSecretStack();
+
+    if (onComplete) onComplete();
+  }, { once: true });
+}
+	  
+    function buildWordPool(exercise) {
+      const shuffledWords = shuffleArray(exercise.words);
+      currentWordPool = shuffledWords.map((word, index) => ({
+        id: `word-${currentExerciseIndex}-${index}`,
+        word,
+        lego: randomLego()
+      }));
+    }
+
+    function renderWordBank() {
+      wordBankEl.innerHTML = "";
+
+      currentWordPool.forEach((item) => {
+        const used = currentPlaced.some((slot) => slot && slot.id === item.id);
+
+        const wordEl = document.createElement("div");
+        wordEl.className = "lego-word";
+        if (used) wordEl.classList.add("used");
+
+        wordEl.style.backgroundImage = `url("${item.lego}")`;
+        wordEl.textContent = item.word;
+        wordEl.draggable = !used;
+        wordEl.dataset.id = item.id;
+
+        wordEl.addEventListener("dragstart", () => {
+          draggedWordId = item.id;
+          wordEl.classList.add("dragging");
+        });
+
+        wordEl.addEventListener("dragend", () => {
+          wordEl.classList.remove("dragging");
+        });
+
+        wordEl.addEventListener("click", () => {
+          if (!used) placeInFirstEmpty(item.id);
+        });
+
+        wordBankEl.appendChild(wordEl);
+      });
+    }
+
+    function renderSlots() {
+      slotsEl.innerHTML = "";
+
+      const answerLength = exercises[currentExerciseIndex].answer.length;
+
+      for (let i = 0; i < answerLength; i++) {
+        const slotEl = document.createElement("div");
+        slotEl.className = "slot";
+        slotEl.dataset.index = String(i);
+
+        const placed = currentPlaced[i];
+        if (placed?.state === "correct") slotEl.classList.add("correct", "locked");
+        if (placed?.state === "wrong") slotEl.classList.add("wrong");
+
+        slotEl.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          if (!slotEl.classList.contains("locked")) {
+            slotEl.classList.add("drop-hover");
+          }
+        });
+
+        slotEl.addEventListener("dragleave", () => {
+          slotEl.classList.remove("drop-hover");
+        });
+
+        slotEl.addEventListener("drop", (e) => {
+          e.preventDefault();
+          slotEl.classList.remove("drop-hover");
+          if (slotEl.classList.contains("locked")) return;
+          if (!draggedWordId) return;
+          placeWordInSlot(draggedWordId, i);
+        });
+
+        if (placed) {
+          const placedEl = document.createElement("div");
+          placedEl.className = "placed-word";
+          placedEl.textContent = placed.word;
+          placedEl.style.backgroundImage = `url("${getPlacedBackground(placed)}")`;
+
+          placedEl.addEventListener("click", () => {
+            if (placed.state === "correct") return;
+            removeFromSlot(i);
+          });
+
+          slotEl.appendChild(placedEl);
+        }
+
+        slotsEl.appendChild(slotEl);
+      }
+    }
+
+    function getPlacedBackground(placed) {
+      if (placed.state === "correct") return "images/cubov.png";
+      if (placed.state === "wrong") return "images/cubor.png";
+      return placed.lego;
+    }
+
+    function placeInFirstEmpty(wordId) {
+      const emptyIndex = currentPlaced.findIndex((slot) => slot === null);
+      if (emptyIndex !== -1) {
+        placeWordInSlot(wordId, emptyIndex);
+      }
+    }
+
+    function placeWordInSlot(wordId, slotIndex) {
+      const existingWordSlot = currentPlaced.findIndex((slot) => slot && slot.id === wordId);
+      if (existingWordSlot !== -1) {
+        currentPlaced[existingWordSlot] = null;
+      }
+
+      const existingInTarget = currentPlaced[slotIndex];
+      if (existingInTarget && existingInTarget.state !== "correct") {
+        currentPlaced[slotIndex] = null;
+      }
+
+      const wordData = currentWordPool.find((item) => item.id === wordId);
+      if (!wordData) return;
+
+      currentPlaced[slotIndex] = {
+        id: wordData.id,
+        word: wordData.word,
+        lego: wordData.lego,
+        state: "normal"
+      };
+			
+	  playRandomGlue();
+      renderWordBank();
+      renderSlots();
+      setButtonDefault();
+    }
+
+	function removeFromSlot(slotIndex) {
+	  if (!currentPlaced[slotIndex]) return;
+	  if (currentPlaced[slotIndex].state === "correct") return;
+
+	  playSound("removeSound");
+
+	  currentPlaced[slotIndex] = null;
+	  renderWordBank();
+	  renderSlots();
+	  setButtonDefault();
+	}
+
+	function setButtonDefault() {
+	  buttonMode = "check";
+	  readyToGoNext = false;
+	  checkBtn.disabled = false;
+	  checkBtn.textContent = "Check";
+	  checkBtn.classList.remove("good", "bad");
+	}
+
+    function loadExercise(index) {
+      currentExerciseIndex = index;
+      currentPlaced = new Array(exercises[index].answer.length).fill(null);
+      buildWordPool(exercises[index]);
+      renderTopIcons();
+      renderWordBank();
+      renderSlots();
+      setButtonDefault();
+    }
+
+function checkAnswer() {
+  const exercise = exercises[currentExerciseIndex];
+
+  // Si el botón dice Try again, reinicia la misma pregunta
+  if (buttonMode === "tryAgain") {
+    playSound("removeSound");
+    currentPlaced = new Array(exercise.answer.length).fill(null);
+    buildWordPool(exercise);
+    renderWordBank();
+    renderSlots();
+    setButtonDefault();
+    return;
+  }
+
+  // Si el botón dice Next, pasa a la siguiente pregunta
+  if (buttonMode === "next") {
+    playSound("removeSound");
+
+    const nextIndex = currentExerciseIndex + 1;
+
+    if (nextIndex < exercises.length) {
+      loadExercise(nextIndex);
+    } else {
+      renderTopIcons();
+      wordBankEl.innerHTML = "";
+      slotsEl.innerHTML = "";
+      checkBtn.style.display = "none";
+      endMessageEl.textContent = "";
+      showEndScreen();
+    }
+
+    return;
+  }
+
+  const answer = exercise.answer;
+
+  let allFilled = true;
+  let allCorrect = true;
+
+  for (let i = 0; i < answer.length; i++) {
+    const placed = currentPlaced[i];
+
+    if (!placed) {
+      allFilled = false;
+      allCorrect = false;
+      continue;
+    }
+
+    if (placed.word === answer[i]) {
+      placed.state = "correct";
+    } else {
+      placed.state = "wrong";
+      allCorrect = false;
+    }
+  }
+
+  renderSlots();
+  renderWordBank();
+
+  if (!allFilled || !allCorrect) {
+    playSound("badSound");
+    buttonMode = "tryAgain";
+    checkBtn.textContent = "Try again";
+    checkBtn.classList.remove("good");
+    checkBtn.classList.add("bad");
+    return;
+  }
+
+  playSound("goodSound");
+  buttonMode = "great";
+  checkBtn.textContent = "Great!";
+  checkBtn.classList.remove("bad");
+  checkBtn.classList.add("good");
+  checkBtn.disabled = true;
+
+  animateRevealPiece(exercise.reveal, () => {
+    setTimeout(() => {
+      buttonMode = "next";
+      checkBtn.textContent = "Next";
+      checkBtn.disabled = false;
+    }, 2000);
+  });
+}
+
+    checkBtn.addEventListener("click", checkAnswer);
+
+    function init() {
+      renderSecretStack();
+      renderTopIcons();
+      loadExercise(0);
+    }
+
+function showEndScreen() {
+  const endScreen = document.getElementById("endScreen");
+  const endVideo = document.getElementById("endVideo");
+
+  if (endScreen) {
+    endScreen.classList.add("show");
+  }
+
+  if (endVideo) {
+    endVideo.currentTime = 0;
+    endVideo.play().catch(() => {});
+  }
+
+  playSound("winnerSound");
+
+  setTimeout(() => {
+    playSound("congraSound");
+  }, 400);
+
+  setTimeout(() => {
+    playSound("applauseSound");
+  }, 800);
+
+  launchConfetti();
+}
+function launchConfetti() {
+  const duration = 5000;
+  const end = Date.now() + duration;
+
+  const interval = setInterval(() => {
+    const timeLeft = end - Date.now();
+
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      return;
+    }
+
+    // lluvia izquierda
+    confetti({
+      particleCount: 80,
+      startVelocity: 45,
+      spread: 120,
+      ticks: 140,
+      scalar: 1.2,
+      origin: {
+        x: 0.15,
+        y: 0.1
+      },
+      zIndex: 10002
+    });
+
+    // lluvia derecha
+    confetti({
+      particleCount: 80,
+      startVelocity: 45,
+      spread: 120,
+      ticks: 140,
+      scalar: 1.2,
+      origin: {
+        x: 0.85,
+        y: 0.1
+      },
+      zIndex: 10002
+    });
+
+    // centro explosión
+    confetti({
+      particleCount: 50,
+      startVelocity: 35,
+      spread: 180,
+      ticks: 120,
+      scalar: 1.1,
+      origin: {
+        x: 0.5,
+        y: 0.2
+      },
+      zIndex: 10002
+    });
+
+  }, 250);
+}
+
+    init();
+
+	function startGame() {
+	  playSound("startSound");
+
+	  const screen = document.getElementById("startScreen");
+
+	  screen.style.transition = "opacity 0.6s ease";
+	  screen.style.opacity = "0";
+	  window.parent.postMessage({ type: "practiceStarted" }, "*");
+
+	  setTimeout(() => {
+		screen.style.display = "none";
+	  }, 600);
+	}
+		
+		
+  </script>
+	<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</body>
+</html>
